@@ -18,7 +18,9 @@ public class VisualNetworkNode : MonoBehaviour, Microsoft.MixedReality.Sharing.S
     Queue<VisualNetworkEmulator.Message> queuedMessages = new Queue<VisualNetworkEmulator.Message>();
 
     private GameObject connectionPointObject;
+
     public Renderer Renderer { get; private set; }
+    readonly float uiHue = GenerateNextHue();
 
     public void UpdateConnectionPointObject(Vector3 graphCenter)
     {
@@ -67,10 +69,30 @@ public class VisualNetworkNode : MonoBehaviour, Microsoft.MixedReality.Sharing.S
         VisualNetworkEmulator.Instance.networkNodes.Add(ConnectionString, this);
         Renderer = GetComponent<Renderer>();
         connectionPointObject = Instantiate(VisualNetworkEmulator.Instance.endpointPrefab);
+
+        Renderer connectionPointRenderer = connectionPointObject.GetComponent<Renderer>();
+        connectionPointRenderer.sharedMaterial = Instantiate(connectionPointRenderer.sharedMaterial);
+        connectionPointRenderer.sharedMaterial.color = Color.HSVToRGB(uiHue, 0.82f, 1, false);
     }
 
     void Update()
     {
 
     }
+
+    // Splits the color space into smaller and smaller segments
+    // and returns reasonably spaced unique values of for hue.
+    private static float GenerateNextHue()
+    {
+        ++huePhaseElementId;
+        if (huePhaseElementId == huePhaseElementsCount)
+        {
+            huePhaseElementId = 0;
+            huePhaseElementsCount *= 2;
+        }
+        float sectorSize = 1.0f / huePhaseElementsCount;
+        return (sectorSize * huePhaseElementId + sectorSize / 2 + 0.845f) % 1.0f;
+    }
+    private static int huePhaseElementsCount = 2;
+    private static int huePhaseElementId = -1;
 }
